@@ -54,25 +54,6 @@ class Lock(commands.Cog):
 
         await ctx.send("You have finished the setup!")
 
-
-    @checks.admin_or_permissions(manage_guild=True)
-    @commands.guild_only()
-    @commands.command()
-    async def lockunignore(
-        self, ctx: commands.Context, new_channel: discord.TextChannel
-    ):
-        """ Remove channels from the ignored list. """
-        if new_channel.id not in await self.config.guild(ctx.guild).ignore():
-            await ctx.send(
-                f"{new_channel.mention} already isn't in the ignored channels list."
-            )
-        else:
-            async with self.config.guild(ctx.guild).ignore() as ignore:
-                ignore.remove(new_channel.id)
-            await ctx.send(
-                f"{new_channel.mention} has been removed from the ignored channels list."
-            )
-
     @checks.mod_or_permissions(manage_roles=True)
     @commands.command()
     @commands.guild_only()
