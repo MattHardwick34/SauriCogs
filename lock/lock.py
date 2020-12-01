@@ -54,21 +54,6 @@ class Lock(commands.Cog):
 
         await ctx.send("You have finished the setup!")
 
-    @checks.admin_or_permissions(manage_guild=True)
-    @commands.guild_only()
-    @commands.command()
-    async def lockignore(self, ctx: commands.Context, new_channel: discord.TextChannel):
-        """ Ignore a channel during server lock. """
-        if new_channel.id not in await self.config.guild(ctx.guild).ignore():
-            async with self.config.guild(ctx.guild).ignore() as ignore:
-                ignore.append(new_channel.id)
-            await ctx.send(
-                f"{new_channel.mention} has been added into the ignored channels list."
-            )
-        else:
-            await ctx.send(
-                f"{new_channel.mention} is already in the ignored channels list."
-            )
 
     @checks.admin_or_permissions(manage_guild=True)
     @commands.guild_only()
@@ -139,7 +124,7 @@ class Lock(commands.Cog):
                 everyone, read_messages=False, send_messages=False
             )
         await ctx.channel.set_permissions(mods, read_messages=True, send_messages=True)
-        await ctx.send(":lock: Channel locked. Only Moderators can type.")
+        await ctx.send(":no_entry_sign: Channel hidden. Only Moderators can type.")
 
     @checks.mod_or_permissions(manage_roles=True)
     @commands.command()
@@ -165,69 +150,3 @@ class Lock(commands.Cog):
             )
         await ctx.send(":unlock: Channel unlocked.")
 
-    @checks.mod_or_permissions(manage_roles=True)
-    @commands.command()
-    @commands.guild_only()
-    @checks.bot_has_permissions(manage_channels=True)
-    async def lockserver(self, ctx: commands.Context, confirmation: bool = False):
-        """ Lock `@everyone` from sending messages in the entire server."""
-        if not confirmation:
-            return await ctx.send(
-                "This will overwrite every channel's permissions.\n"
-                f"If you're sure, type `{ctx.clean_prefix}lockserver yes` (you can set an alias for this so I don't ask you every time)."
-            )
-        async with ctx.typing():
-            everyone = get(ctx.guild.roles, name="@everyone")
-            name_moderator = await self.config.guild(ctx.guild).moderator()
-            mods = get(ctx.guild.roles, name=name_moderator)
-            which = await self.config.guild(ctx.guild).everyone()
-            ignore = await self.config.guild(ctx.guild).ignore()
-
-            if not name_moderator:
-                return await ctx.send(
-                    "Uh oh. Looks like your Admins haven't setup this yet."
-                )
-            for channel in ctx.guild.text_channels:
-                if channel.id in ignore:
-                    continue
-                if which:
-                    await channel.set_permissions(
-                        everyone, read_messages=True, send_messages=False
-                    )
-                else:
-                    await channel.set_permissions(
-                        everyone, read_messages=False, send_messages=False
-                    )
-                await channel.set_permissions(
-                    mods, read_messages=True, send_messages=True
-                )
-        await ctx.send(":lock: Server locked. Only Moderators can type.")
-
-    @checks.mod_or_permissions(manage_roles=True)
-    @commands.command()
-    @commands.guild_only()
-    @checks.bot_has_permissions(manage_channels=True)
-    async def unlockserver(self, ctx: commands.Context):
-        """ Unlock the entire server for `@everyone` """
-        async with ctx.typing():
-            everyone = get(ctx.guild.roles, name="@everyone")
-            name_moderator = await self.config.guild(ctx.guild).moderator()
-            which = await self.config.guild(ctx.guild).everyone()
-            ignore = await self.config.guild(ctx.guild).ignore()
-
-            if not name_moderator:
-                return await ctx.send(
-                    "Uh oh. Looks like your Admins haven't setup this yet."
-                )
-            for channel in ctx.guild.text_channels:
-                if channel.id in ignore:
-                    continue
-                if which:
-                    await channel.set_permissions(
-                        everyone, read_messages=True, send_messages=True
-                    )
-                else:
-                    await channel.set_permissions(
-                        everyone, read_messages=False, send_messages=True
-                    )
-        await ctx.send(":unlock: Server unlocked.")
