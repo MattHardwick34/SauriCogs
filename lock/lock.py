@@ -113,6 +113,33 @@ class Lock(commands.Cog):
             )
         await ctx.channel.set_permissions(mods, read_messages=True, send_messages=True)
         await ctx.send(":lock: Channel locked. Only Moderators can type.")
+   
+
+    @checks.mod_or_permissions(manage_roles=True)
+    @commands.command()
+    @commands.guild_only()
+    @checks.bot_has_permissions(manage_channels=True)
+    async def hide(self, ctx: commands.Context):
+        """ Lock `@everyone` from sending messages."""
+        everyone = get(ctx.guild.roles, name="@everyone")
+        name_moderator = await self.config.guild(ctx.guild).moderator()
+        mods = get(ctx.guild.roles, name=name_moderator)
+        which = await self.config.guild(ctx.guild).everyone()
+
+        if not name_moderator:
+            return await ctx.send(
+                "Uh oh. Looks like your Admins haven't setup this yet."
+            )
+        if which:
+            await ctx.channel.set_permissions(
+                everyone, read_messages=False, send_messages=False
+            )
+        else:
+            await ctx.channel.set_permissions(
+                everyone, read_messages=False, send_messages=False
+            )
+        await ctx.channel.set_permissions(mods, read_messages=True, send_messages=True)
+        await ctx.send(":lock: Channel locked. Only Moderators can type.")
 
     @checks.mod_or_permissions(manage_roles=True)
     @commands.command()
